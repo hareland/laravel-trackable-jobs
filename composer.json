@@ -3,7 +3,6 @@
   "description": "A simple solution for tracking Laravel jobs.",
   "type": "library",
   "license": "MIT",
-  "version": "dev-master",
   "autoload": {
     "psr-4": {
       "Hareland\\Trackable\\": "src/"
