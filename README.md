@@ -2,6 +2,14 @@
 
 A simple package to keep track of your Laravel Queue jobs.
 
+
+
+
+## Requirements
+
+- PHP 8.1+
+- Laravel 9+
+
 ---
 
 ## Installing
