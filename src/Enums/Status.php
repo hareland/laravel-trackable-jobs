@@ -15,6 +15,7 @@ enum Status: string implements TrackableStatusColumn
     public function column(): string
     {
         return match ($this) {
+            self::PENDING => 'updated_at',
             self::QUEUED => 'queued_at',
             self::STARTED => 'started_at',
             self::FAILED => 'failed_at',

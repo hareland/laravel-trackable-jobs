@@ -3,22 +3,15 @@
 namespace Hareland\Trackable\Traits;
 
 use Hareland\Trackable\Contracts\Middleware;
-use Hareland\Trackable\Jobs\Middleware\Tracked;
 use Hareland\Trackable\Models\TrackableJobEnvelope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\MaxAttemptsExceededException;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
 trait Trackable
 {
 
 
-    /**
-     * TrackedJob tied to this job.
-     *
-     * @var TrackableJobEnvelope
-     */
     protected ?TrackableJobEnvelope $trackedJobEnvelope = null;
 
     public function __construct(
