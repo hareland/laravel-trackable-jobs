@@ -30,7 +30,7 @@ class Tracked implements Middleware
 
     public function completed(Job $job, mixed $response): void
     {
-        if ($response && method_exists($job, 'success')) {
+        if (method_exists($job, 'success')) {
             $job->success($response);
         }
         if (method_exists($job, 'after')) {

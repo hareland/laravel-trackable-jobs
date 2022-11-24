@@ -2,9 +2,6 @@
 
 A simple package to keep track of your Laravel Queue jobs.
 
-
-
-
 ## Requirements
 
 - PHP 8.1+
@@ -112,6 +109,7 @@ class SendLetterJob extends Job implements ShouldQueue
     {
         //Handle a successful run 
         $this->getTrackable(); //This is the constructor passed
+        $this->markAsFinished();
     }
    
     //Optional:
@@ -119,6 +117,7 @@ class SendLetterJob extends Job implements ShouldQueue
     {
         //If for any reason the handle method throw an exception, it will be catched by "fail/failed" so you can deal with it.
         //If you use failed instead of fail, you can do cleanup
+        $this->markAsFailed($throwable);
     } 
     
     //Optional:

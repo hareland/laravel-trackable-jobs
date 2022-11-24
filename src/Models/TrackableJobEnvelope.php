@@ -71,18 +71,14 @@ class TrackableJobEnvelope extends Model
         return $this->morphTo('trackable');
     }
 
-    public function setData(mixed $arrayable): void
+    public function setData(array $data): void
     {
-        $this->update(['data' => $arrayable]);
+        $this->update(compact('data'));
     }
 
-    public function markAsFinished(mixed $data = []): void
+    public function markAsFinished(array $data = []): void
     {
-        if (!is_bool($data)) {
-            $this->setStatus(Status::FINISHED, compact('data'));
-            return;
-        }
-        $this->setStatus(Status::FINISHED);
+        $this->setStatus(Status::FINISHED, compact('data'));
     }
 
     public function markAsStarted()
@@ -93,14 +89,16 @@ class TrackableJobEnvelope extends Model
         ]);
     }
 
-    public function markAsFailed($message): void
+    public function markAsFailed($result): void
     {
-        if ($message instanceof Arrayable || is_array($message)) {
-            $data = (array)$message;
-        } elseif (is_scalar($message)) {
-            $data = ['messages' => [$message]];
-        } elseif ($message instanceof \Throwable) {
-            $data = ['messages' => [$message->getMessage()]];
+        if ($result instanceof Arrayable || is_array($result)) {
+            $data = (array)$result;
+        } elseif (is_scalar($result)) {
+            $data = ['messages' => [$result]];
+        } elseif ($result instanceof \Throwable) {
+            $data = ['messages' => [$result->getMessage()]];
+        } else {
+            $data = [$result];
         }
 
         $this->update([
