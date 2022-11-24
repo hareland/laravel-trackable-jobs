@@ -3,6 +3,8 @@
 namespace Hareland\Trackable;
 
 
+use Hareland\Trackable\Contracts\Middleware;
+use Hareland\Trackable\Jobs\Middleware\Tracked;
 use Illuminate\Support\ServiceProvider;
 
 class LaravelTrackableJobServiceProvider extends ServiceProvider
@@ -11,7 +13,7 @@ class LaravelTrackableJobServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-
+        $this->app->bind(Middleware::class, fn() => new Tracked);
     }
 
     public function boot(): void

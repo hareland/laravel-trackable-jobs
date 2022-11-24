@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->morphs('trackable');
             $table->string('handle');
             $table->string('status')->default(Status::PENDING->value);
-            $table->foreignId('job_id')->nullable();
+            $table->foreignUuid('job_uuid')->nullable();
             $table->json('data')->nullable();
             $table->timestamp('queued_at')->nullable();
             $table->timestamp('started_at')->nullable();

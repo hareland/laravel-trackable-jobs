@@ -14,7 +14,7 @@ class StatusCast implements CastsAttributes
     public function get($model, string $key, $value, array $attributes)
     {
         if (is_string($value)) {
-            return config('trackable-jobs.status_enum', Status::class)::tryFrom($value);
+            return Status::tryFrom($value);
         }
         return $value;
     }

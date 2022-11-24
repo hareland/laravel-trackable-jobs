@@ -2,82 +2,46 @@
 
 namespace Hareland\Trackable\Jobs\Middleware;
 
-use App\Enums\CheckStatus;
-use App\Lib\Scraping\Notifications\InvalidMerchantConfigurationNotification;
-use App\Lib\Scraping\Notifications\PageNotFoundNotification;
-use App\Lib\Scraping\Scraper\Exceptions\BrowserException;
-use App\Lib\Scraping\Scraper\Exceptions\ConfigurationException;
-use App\Lib\Scraping\Scraper\Exceptions\ScrapingException;
-use Carbon\Carbon;
+use Hareland\Trackable\Contracts\Middleware;
+use Illuminate\Contracts\Queue\Job;
 use Throwable;
 
-class Tracked
+class Tracked implements Middleware
 {
-    /**
-     *
-     * @param mixed $job
-     * @param callable $next
-     * @return void
-     */
-    public function handle($job, $next)
+    public function handle(Job $job, callable $next)
     {
-        $job->getTrackedJobEnvelope()->markAsStarted();
+        $this->started($job, $next);
 
         try {
             $response = call_user_func($next, $job);
 
-            if ($response) {
-                $job->getTrackedJobEnvelope()->markAsFinished($response);
-            }
-        } catch (BrowserException $exception) {
-            $job->getConfiguration()->update([
-                'check_status' => CheckStatus::COMPLETED,
-                'last_checked_at' => now(),
-            ]);
-            $job->getTrackedJobEnvelope()->markAsFailed($exception);
-        } catch (ConfigurationException $exception) {
-            $job->getConfiguration()->update([
-                'active' => false,
-                'check_status' => CheckStatus::FAILED,
-                'last_checked_at' => now(),
-            ]);
-            $job->getTrackedJobEnvelope()->markAsFailed($exception);
-
-            //Notify site
-            $job->getConfiguration()->product->site->notify(
-                new InvalidMerchantConfigurationNotification(
-                    $job->getTrackable()->configuration,
-                    $exception,
-                ),
-            );
-        } catch (ScrapingException $exception) {
-            if ($exception->getCode() === ScrapingException::ERROR_NOTFOUND) {
-                $job->getConfiguration()->update([
-                    'active' => false,
-                    'check_status' => CheckStatus::FAILED,
-                    'last_checked_at' => now(),
-                ]);
-                $job->getTrackedJobEnvelope()->markAsFailed($exception);
-
-            } elseif ($exception->getCode() === ScrapingException::ERROR_TIMEOUT) {
-                $job->getConfiguration()->update([
-                    'active' => false,
-                    'check_status' => CheckStatus::FAILED,
-                    'last_checked_at' => now(),
-                ]);
-                $job->getTrackedJobEnvelope()->markAsFailed($exception);
-
-            } else {
-                throw $exception;
-            }
+            $this->completed($job, $response);
         } catch (Throwable $e) {
-            $job->getConfiguration()->update([
-                'active' => false,
-                'check_status' => CheckStatus::FAILED,
-                'last_checked_at' => now(),
-            ]);
-            $job->getTrackedJobEnvelope()->markAsFailed($e);
-            $job->fail($e);
+            $this->failed($job, $next, $e);
+        }
+    }
+
+    public function started(Job $job, callable $next): void
+    {
+        if (method_exists($job, 'before')) {
+            $job->before($job, $next);
+        }
+    }
+
+    public function completed(Job $job, mixed $response): void
+    {
+        if ($response && method_exists($job, 'success')) {
+            $job->success($response);
+        }
+        if (method_exists($job, 'after')) {
+            $job->after($job, $response);
+        }
+    }
+
+    public function failed(Job $job, callable $next, Throwable $exception): void
+    {
+        if (method_exists($job, 'fail')) {
+            $job->fail($exception);
         }
     }
 }

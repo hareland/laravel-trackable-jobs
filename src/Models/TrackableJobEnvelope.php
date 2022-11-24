@@ -57,12 +57,12 @@ class TrackableJobEnvelope extends Model
         'failed_at',
     ];
 
-    public function setStatus(TrackableStatusColumn $status, array $additional = [])
+    public function setStatus(TrackableStatusColumn $status, array $attributes = [])
     {
         $this->update([
             'status' => $status,
             $status->column() => now(),
-            ...$additional,
+            ...$attributes,
         ]);
     }
 
@@ -80,12 +80,9 @@ class TrackableJobEnvelope extends Model
     {
         if (!is_bool($data)) {
             $this->setStatus(Status::FINISHED, compact('data'));
-        } else {
-            $this->setStatus(Status::FINISHED);
+            return;
         }
-        if (method_exists($this->trackable, 'markAsFinished')) {
-            $this->trackable->markAsFinished();
-        }
+        $this->setStatus(Status::FINISHED);
     }
 
     public function markAsStarted()
@@ -112,10 +109,5 @@ class TrackableJobEnvelope extends Model
             'finished_at' => now(),
             'data' => $data,
         ]);
-
-        //If our tracked model supports failing
-        if (method_exists($this->trackable, 'markAsFailed')) {
-            $this->trackable->markAsFailed();
-        }
     }
 }
